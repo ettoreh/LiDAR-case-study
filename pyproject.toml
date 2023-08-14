@@ -18,8 +18,8 @@ flake8 = "^6.1.0"
 pandas = "^2.0.3"
 
 [tool.poetry.urls]
-"Homepage" = "https://github.com/ettoreh/LIDAR-CASE-STUDY"
-"Bug Tracker" = "https://github.com/ettoreh/LIDAR-CASE-STUDY/issues"
+"Homepage" = "https://github.com/ettoreh/LiDAR-case-study"
+"Bug Tracker" = "https://github.com/ettoreh/LiDAR-case-study/issues"
 
 [build-system]
 requires = ["poetry-core"]

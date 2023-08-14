@@ -1,0 +1,6 @@
+# ignore large files 
+*.parquet
+*.csv
+
+# other files 
+.DS_store

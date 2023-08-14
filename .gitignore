@@ -2,5 +2,14 @@
 *.parquet
 *.csv
 
-# other files 
+# python caches 
+__pycache__
 .DS_store
+
+# pytest files 
+.coverage
+.pytest_cache
+
+# vscode files 
+.vscode
+

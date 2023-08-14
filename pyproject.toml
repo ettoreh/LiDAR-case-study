@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "wire-detect"
+version = "0.1.0"
+description = "Library made to detect wire from LiDAR point cloud dataset"
+authors = ["Ettore Hidoux <ettore.hidoux@imt-atlantique.net>"]
+maintainers = [
+    "Ettore Hidoux <ettore.hidoux@imt-atlantique.net>",
+]
+
+license = "MIT"
+readme = "README.md"
+packages = [{include = "wire_detect"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pytest = "^7.4.0"
+flake8 = "^6.1.0"
+pandas = "^2.0.3"
+
+[tool.poetry.urls]
+"Homepage" = "https://github.com/ettoreh/LIDAR-CASE-STUDY"
+"Bug Tracker" = "https://github.com/ettoreh/LIDAR-CASE-STUDY/issues"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

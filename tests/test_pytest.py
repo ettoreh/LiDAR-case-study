@@ -4,7 +4,6 @@ import pytest
 
 @pytest.fixture
 def example():
-    """Test variable"""
     return True
 
 

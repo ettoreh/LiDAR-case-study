@@ -4,8 +4,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from scipy.optimize import curve_fit
-from wire_detect.equation import plan, catenary2d, catenary3d
-from wire_detect.helper import get_labels, get_eps
+from wire_detect.equation import plan, catenary2d, catenary3d, rmse
+from wire_detect.helper import get_labels, get_eps, get_eps_by_iteration
 from wire_detect.rotation import rotate_matrix
 from wire_detect.wire import Wire
 
@@ -22,6 +22,43 @@ colors = {
     8: "olive",
     9: "cyan"
 }
+
+
+def aggregate_same_plan_cluster(labels, plans):
+    """
+    Find cluster located in the same plan and merge them.
+
+    Args:
+        labels (list): label of each cluster
+        plans (list): value of (a, b) coeff for cluster plans
+
+    Returns:
+        list: new label for each cluster
+    """
+    # TODO: find a way to determine the right threshold 
+    threshold = 0.1
+    new_labels, already_added = [], []
+    for label in range(max(labels)+1):
+        if not label in already_added:
+            new_labels.append([label])
+            a, b = plans[label]
+            for second_label in range(label+1, max(labels)+1):
+                second_a, second_b = plans[second_label]
+                if (abs(a - second_a) < threshold) and (
+                    abs(b - second_b) < threshold):
+                    
+                    new_labels[label].append(second_label)
+                    already_added.append(second_label)
+        else:
+            new_labels.append([])
+            
+    new_labels = list(filter(lambda a: a != [], new_labels))
+    final_labels = labels.copy()
+    for i, label in enumerate(new_labels):
+        for element in label:
+            final_labels[final_labels == element] = i
+                
+    return final_labels
 
 
 class Detector:
@@ -44,16 +81,24 @@ class Detector:
         self.method = method
         self.eps = eps
         if self.eps is None:
+            # TODO: find a way to determine efficiently eps
             self.eps = get_eps(df)
+            print(self.eps)
+        #     self.eps = get_eps_by_iteration(df)
+        #     print(self.eps)
         self.labels = None
         self.plans = None
         self.catenaries = None
         self.wires = []
         self.predictions = []
+        self.scores = []
+        
+        # Find clusters 
         self.find_plan_coefficient()
         self.find_catenary_coefficient()
         self.create_wire()
         self.make_prediction()
+        self.evaluation()
 
     def find_plan_coefficient(self):
         """
@@ -70,9 +115,23 @@ class Detector:
             [a, b], _ = curve_fit(plan, one_wire.x, one_wire.y)
             plans.append((a, b))
 
-        # TODO: add logic for same plan
-        self.labels = labels
-        self.plans = plans
+        # Add logic for same plan cluster
+        new_labels = aggregate_same_plan_cluster(labels, plans)
+        
+        if (labels == new_labels).all():
+            self.labels = labels
+            self.plans = plans
+            
+        else:
+            plans = []
+            for label in range(max(new_labels)+1):
+                one_wire = self.df[new_labels == label].copy()
+                [a, b], _ = curve_fit(plan, one_wire.x, one_wire.y)
+                plans.append((a, b))
+            
+            self.labels = new_labels
+            self.plans = plans
+            
 
     def find_catenary_coefficient(self):
         """Use curve fitting from scipy to get catenaries coeffient."""
@@ -110,6 +169,18 @@ class Detector:
             prediction = pd.DataFrame(
                 np.transpose([xx, yy, zz]), columns=["x", "y", "z"])
             self.predictions.append(prediction)
+        
+    def evaluation(self):
+        """Calculate the plan and catenary rmse for each wire."""
+        for label in range(max(self.labels)+1):
+            one_wire = self.df[self.labels == label].copy()
+            a, b = self.plans[label]
+            yy = plan(one_wire["x"], a, b)
+            y_rmse = rmse(one_wire["y"], yy)
+            xo, zo, c = self.catenaries[label]
+            zz = catenary3d(one_wire["x"], one_wire["y"], xo, zo, c, a)
+            z_rmse = rmse(one_wire["z"], zz)
+            self.scores.append((y_rmse, z_rmse))
 
     def plot_dataset(self):
         """

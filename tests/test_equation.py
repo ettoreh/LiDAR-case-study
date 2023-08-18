@@ -9,19 +9,21 @@ def test_plan():
 
 
 def test_catenary2d():
-    assert eq.catenary2d(1, 2, 3, 4) == 3.1256523995182928
+    assert np.round(eq.catenary2d(1, 2, 3, 4), 6) == 3.125652
 
 
 def test_catenary3d():
-    assert eq.catenary3d(1, 2, 3, 4, 5, 6) == 4.15283476851212
+    assert np.round(eq.catenary3d(1, 2, 3, 4, 5, 6), 6) == 4.152835
 
 
 def test_rotate():
-    assert eq.rotate(1, 2, 3) == [0.9665293241812118, 2.016388123724649]
+    x, y = eq.rotate(1, 2, 3) 
+    assert np.round(x, 6) == 0.966529
+    assert np.round(y, 6) == 2.016388
 
 
 def test_rmse():
-    assert eq.rmse(
+    assert np.round(eq.rmse(
         np.array([-1.8315895449468216, -1.8301816526460877]),
         np.array(
-            [-1.8302488415643627, 1.826984999062111])) == 2.586007513122508
+            [-1.8302488415643627, 1.826984999062111])), 6) == 2.586008

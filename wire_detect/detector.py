@@ -3,9 +3,11 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
+from collections import Counter
 from scipy.optimize import curve_fit
+
 from wire_detect.equation import plan, catenary2d, catenary3d, rmse
-from wire_detect.helper import get_labels, get_eps, get_eps_by_iteration
+from wire_detect.helper import get_labels, get_eps
 from wire_detect.rotation import rotate_matrix
 from wire_detect.wire import Wire
 
@@ -35,29 +37,36 @@ def aggregate_same_plan_cluster(labels, plans):
     Returns:
         list: new label for each cluster
     """
-    # TODO: find a way to determine the right threshold 
-    threshold = 0.1
+    # TODO: find a way to determine the right threshold
+    threshold = 0.2
     new_labels, already_added = [], []
     for label in range(max(labels)+1):
-        if not label in already_added:
+        if label not in already_added:
             new_labels.append([label])
             a, b = plans[label]
             for second_label in range(label+1, max(labels)+1):
                 second_a, second_b = plans[second_label]
                 if (abs(a - second_a) < threshold) and (
-                    abs(b - second_b) < threshold):
-                    
+                        abs(b - second_b) < threshold):
+
                     new_labels[label].append(second_label)
                     already_added.append(second_label)
         else:
             new_labels.append([])
-            
+
     new_labels = list(filter(lambda a: a != [], new_labels))
     final_labels = labels.copy()
     for i, label in enumerate(new_labels):
         for element in label:
             final_labels[final_labels == element] = i
-                
+
+    # exclude clusters to small to be a wire∏
+    min_cluster_size = 50
+    values = dict(Counter(final_labels))
+    for key in values:
+        if values[key] < min_cluster_size:
+            final_labels[final_labels == key] = -1
+
     return final_labels
 
 
@@ -92,8 +101,8 @@ class Detector:
         self.wires = []
         self.predictions = []
         self.scores = []
-        
-        # Find clusters 
+
+        # Find clusters
         self.find_plan_coefficient()
         self.find_catenary_coefficient()
         self.create_wire()
@@ -114,24 +123,24 @@ class Detector:
             one_wire = self.df[labels == label].copy()
             [a, b], _ = curve_fit(plan, one_wire.x, one_wire.y)
             plans.append((a, b))
+        print(plans)
 
         # Add logic for same plan cluster
         new_labels = aggregate_same_plan_cluster(labels, plans)
-        
+
         if (labels == new_labels).all():
             self.labels = labels
             self.plans = plans
-            
+
         else:
             plans = []
             for label in range(max(new_labels)+1):
                 one_wire = self.df[new_labels == label].copy()
                 [a, b], _ = curve_fit(plan, one_wire.x, one_wire.y)
                 plans.append((a, b))
-            
+
             self.labels = new_labels
             self.plans = plans
-            
 
     def find_catenary_coefficient(self):
         """Use curve fitting from scipy to get catenaries coeffient."""
@@ -169,7 +178,7 @@ class Detector:
             prediction = pd.DataFrame(
                 np.transpose([xx, yy, zz]), columns=["x", "y", "z"])
             self.predictions.append(prediction)
-        
+
     def evaluation(self):
         """Calculate the plan and catenary rmse for each wire."""
         for label in range(max(self.labels)+1):

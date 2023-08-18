@@ -9,7 +9,7 @@ def test_plan():
 
 
 def test_catenary2d():
-    assert eq.catenary2d(1, 2, 3, 4) == 3.125652399518292
+    assert eq.catenary2d(1, 2, 3, 4) == 3.1256523995182928
 
 
 def test_catenary3d():

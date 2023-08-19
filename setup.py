@@ -1,3 +1,4 @@
+"""Setup file to initiate the library."""
 from setuptools import find_packages, setup
 
 setup(

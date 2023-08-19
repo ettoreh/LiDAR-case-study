@@ -26,13 +26,14 @@ colors = {
 }
 
 
-def aggregate_same_plan_cluster(labels, plans):
+def aggregate_same_plan_cluster(labels, plans, min_cluster_size):
     """
     Find cluster located in the same plan and merge them.
 
     Args:
         labels (list): label of each cluster
         plans (list): value of (a, b) coeff for cluster plans
+        min_cluster_size (int): minimum size to consider a cluster
 
     Returns:
         list: new label for each cluster
@@ -61,7 +62,6 @@ def aggregate_same_plan_cluster(labels, plans):
             final_labels[final_labels == element] = i
 
     # exclude clusters to small to be a wire∏
-    min_cluster_size = 50
     values = dict(Counter(final_labels))
     for key in values:
         if values[key] < min_cluster_size:
@@ -71,11 +71,9 @@ def aggregate_same_plan_cluster(labels, plans):
 
 
 class Detector:
-    """
-    Class taking a point cloud dataset in input and fin the wire located in.
-    """
+    """Class finding the wires located in a point cloud dataset."""
 
-    def __init__(self, df, method="DBSCAN", eps=None) -> None:
+    def __init__(self, df, method="DBSCAN", eps=None, min_cluster_size=50):
         """
         Initialize the detector and locate wires.
 
@@ -85,6 +83,8 @@ class Detector:
             detection. Defaults to "BDSCAN".
             eps (float, optional): argument for the choosen method. Defaults to
             None.
+            min_cluster_size (int, optional): minimum size to consider a
+            cluster. Default to 50.
         """
         self.df = df
         self.method = method
@@ -95,6 +95,7 @@ class Detector:
             print(self.eps)
         #     self.eps = get_eps_by_iteration(df)
         #     print(self.eps)
+        self.min_cluster_size = min_cluster_size
         self.labels = None
         self.plans = None
         self.catenaries = None
@@ -123,10 +124,10 @@ class Detector:
             one_wire = self.df[labels == label].copy()
             [a, b], _ = curve_fit(plan, one_wire.x, one_wire.y)
             plans.append((a, b))
-        print(plans)
 
         # Add logic for same plan cluster
-        new_labels = aggregate_same_plan_cluster(labels, plans)
+        new_labels = aggregate_same_plan_cluster(
+            labels, plans, self.min_cluster_size)
 
         if (labels == new_labels).all():
             self.labels = labels
@@ -239,7 +240,7 @@ class Detector:
         """
         fig = plt.figure(figsize=(10, 7))
         ax = plt.axes(projection='3d')
-        ax.scatter(self.df.x, self.df.y, self.df.z, c='b', alpha=0.01)
+        ax.scatter(self.df.x, self.df.y, self.df.z, c='b', alpha=0.05)
 
         for label in range(max(self.labels)+1):
             ax.plot(

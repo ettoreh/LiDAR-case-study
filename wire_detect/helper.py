@@ -1,3 +1,4 @@
+"""This module provides functions to get labels and eps value."""
 import pandas as pd
 import numpy as np
 
@@ -7,15 +8,17 @@ from sklearn.cluster import DBSCAN, HDBSCAN, OPTICS
 
 
 def get_labels(df, model="DBSCAN", eps=0.67):
-    """_summary_
+    """
+    Execute one clustering model to determine point labels.
 
     Args:
-        df (pd.DataFrame): _description_
-        model (str, optional): _description_. Defaults to "DBSCAN".
-        eps (float, optional): _description_. Defaults to 0.67.
+        df (pd.DataFrame): point cloud dataset
+        model (str, optional): ml model used for clustering. Defaults to
+        "DBSCAN".
+        eps (float, optional): ml model parameter. Defaults to 0.67.
 
     Returns:
-        list: _description_
+        list: label of every point of the dataset
     """
     models = {
         "DBSCAN": DBSCAN(eps=eps),
@@ -28,13 +31,14 @@ def get_labels(df, model="DBSCAN", eps=0.67):
 
 
 def get_eps(df):
-    """_summary_
+    """
+    Use dataset info to determine a value of eps.
 
     Args:
-        df (pd.DataFrame): _description_
+        df (pd.DataFrame): point cloud dataset
 
     Returns:
-        float: _description_
+        float: estimated eps value
     """
     test = pd.DataFrame(
         distance_matrix(df.values, df.values)).describe().transpose()
@@ -42,13 +46,14 @@ def get_eps(df):
 
 
 def get_eps_by_iteration(df):
-    """_summary_
+    """
+    Iterate on eps value and calculate silouhette score to find the best eps.
 
     Args:
-        df (pd.DataFrame): _description_
+        df (pd.DataFrame): point cloud dataset
 
     Returns:
-        float: _description_
+        float: estimated optimal eps value
     """
     eps = {}
     for i in np.linspace(0.1, 1.5, 15):

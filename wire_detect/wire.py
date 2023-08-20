@@ -31,7 +31,7 @@ class Wire:
         Returns:
             str: sentence about the wire
         """
-        return "The wire parameters are: {}, {}, {}, {}, {} and {} ".format(
+        return "The wire parameters are: {}, {}, {}, {}, {} and {}".format(
             self.xo, self.yo, self.zo, self.a, self.b, self.c
         )
 

@@ -43,10 +43,10 @@ Then, the class will have severals attributes:
 ## Results
 
 In order of appeaarence: Easy, Medium, Hard, and Extra Hard <br>
-<img src="data/images/lidar_cable_points_easy.png" width="200">
-<img src="data/images/lidar_cable_points_medium.png" width="200">
-<img src="data/images/lidar_cable_points_hard.png" width="200">
-<img src="data/images/lidar_cable_points_extrahard.png" width="200">
+<img src="data/images/lidar_cable_points_easy.png" width="500">
+<img src="data/images/lidar_cable_points_medium.png" width="500">
+<img src="data/images/lidar_cable_points_hard.png" width="500">
+<img src="data/images/lidar_cable_points_extrahard.png" width="500">
 
 <br><br><br>
 ---
